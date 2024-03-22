@@ -174,7 +174,7 @@ static int parse_argv(
                 } else if ((p = startswith(argv[i], "can-secure-lock="))) {
                         r = parse_boolean(p);
                         if (r < 0)
-                                pam_syslog(pamh, LOG_WARNING, "Failed to parse can-secure-lock= argument, ignoring: %s", p);
+                                sym_pam_syslog(pamh, LOG_WARNING, "Failed to parse can-secure-lock= argument, ignoring: %s", p);
                         else if (secure_lock)
                                 *secure_lock = r;
 
@@ -897,7 +897,7 @@ static int create_session_message(
         } else if (flags != 0)
                 /* Either logind is out-of-date on this machine, or the kernel is compiled w/o PIDFD support. Either way, it's
                  * not the end of the world but the admin should really look into it... */
-                pam_syslog(pamh, LOG_NOTICE, "Cannot pass requested flags to legacy CreateSession method, ignoring.");
+                sym_pam_syslog(pamh, LOG_NOTICE, "Cannot pass requested flags to legacy CreateSession method, ignoring.");
 
         r = sd_bus_message_open_container(m, 'a', "(sv)");
         if (r < 0)
@@ -1817,7 +1817,7 @@ _public_ PAM_EXTERN int pam_sm_open_session(
         c.incomplete = getenv_harder_bool(pamh, "XDG_SESSION_INCOMPLETE", false);
 
         if (getenv_harder(pamh, "SYSTEMD_HOME_SUSPEND", NULL)) { /* Backwards compat */
-                pam_syslog(pamh, LOG_NOTICE, "$SYSTEMD_HOME_SUSPEND is deprecated, please use $SYSTEMD_CAN_SECURE_LOCK instead!");
+                sym_pam_syslog(pamh, LOG_NOTICE, "$SYSTEMD_HOME_SUSPEND is deprecated, please use $SYSTEMD_CAN_SECURE_LOCK instead!");
                 c.secure_lock = getenv_harder_bool(pamh, "SYSTEMD_HOME_SUSPEND", secure_lock);
         }
         c.secure_lock = getenv_harder_bool(pamh, "SYSTEMD_CAN_SECURE_LOCK", secure_lock);
