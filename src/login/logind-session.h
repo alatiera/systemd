@@ -122,6 +122,8 @@ typedef struct Session {
         char *service;
         char *desktop;
 
+        bool can_secure_lock;
+
         char *scope;
         char *scope_job;
 

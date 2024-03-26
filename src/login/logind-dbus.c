@@ -1006,6 +1006,9 @@ int manager_create_session(
         session->remote = remote;
         session->vtnr = vtnr;
         session->class = class;
+        // FIXME-homed: needs flags passed down after code restructuring
+        // session->can_secure_lock = FLAGS_SET(flags, SD_LOGIND_ENABLE_SECURE_LOCK);
+        session->can_secure_lock = false;
 
         /* Once the first session that is of a pinning class shows up we'll change the GC mode for the user
          * from USER_GC_BY_ANY to USER_GC_BY_PIN, so that the user goes away once the last pinning session
@@ -1100,8 +1103,8 @@ static int manager_create_session_by_bus(
         if (!uid_is_valid(uid))
                 return sd_bus_error_set(error, SD_BUS_ERROR_INVALID_ARGS, "Invalid UID");
 
-        if (flags != 0)
-                return sd_bus_error_set(error, SD_BUS_ERROR_INVALID_ARGS, "Flags must be zero.");
+        if ((flags & ~SD_LOGIND_CREATE_SESSION_FLAGS_ALL) != 0)
+                return sd_bus_error_set(error, SD_BUS_ERROR_INVALID_ARGS, "Invalid flags parameter");
 
         _cleanup_(pidref_done) PidRef leader = PIDREF_NULL;
         if (leader_pidfd >= 0)
