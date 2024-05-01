@@ -107,6 +107,7 @@ void user_update_last_session_timer(User *u);
 int user_build_json(User *u, sd_json_variant **ret);
 
 void user_inhibitor_dropped(User *u, Inhibitor *i);
+void user_maybe_became_inactive(User *u);
 
 bool user_can_secure_lock(User *u);
 bool user_is_secure_locked(User *u);
