@@ -433,8 +433,13 @@ int seat_set_active(Seat *s, Session *session) {
         if (old_active) {
                 user_save(old_active->user);
                 session_save(old_active);
-                session_device_pause_all(old_active);
-                session_send_changed(old_active, "Active");
+                // FIXME-homed: Instead of this if, on main it is:
+                // session_device_pause_all(old_active);
+                // session_send_changed(old_active, "Active");
+                if (!session || session->user != old_active->user) {
+                        user_maybe_became_inactive(old_active->user);
+                        user_save(old_active->user);
+                }
         }
 
         r = seat_trigger_devices(s);
