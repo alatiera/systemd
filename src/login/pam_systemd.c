@@ -1364,6 +1364,7 @@ static int register_session(
                         return r;
         }
 
+        log_debug("Attempting to update pam SYSTEMD_CAN_SECURE_LOCK to: %d", c->secure_lock);
         r = update_environment(pamh, "SYSTEMD_CAN_SECURE_LOCK", one_zero(c->secure_lock));
         if (r != PAM_SUCCESS)
                 return r;
@@ -1885,6 +1886,8 @@ _public_ PAM_EXTERN int pam_sm_open_session(
                 c.secure_lock = getenv_harder_bool(pamh, "SYSTEMD_HOME_SUSPEND", secure_lock);
         }
         c.secure_lock = getenv_harder_bool(pamh, "SYSTEMD_CAN_SECURE_LOCK", secure_lock);
+        pam_debug_syslog(pamh, debug, "Pam got secure-lock: %d", c.secure_lock);
+        log_debug("Pam got secure-lock: %d", c.secure_lock);
 
 
         const char *extra_device_access = getenv_harder(pamh, "XDG_SESSION_EXTRA_DEVICE_ACCESS", NULL);

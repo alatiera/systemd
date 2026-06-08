@@ -739,6 +739,7 @@ int session_load(Session *s) {
                         return r;
         }
 
+        log_debug("Session load, can-secure-lock: %s", can_secure_lock);
         if (can_secure_lock) {
                 k = parse_boolean(can_secure_lock);
                 if (k >= 0)

@@ -652,7 +652,7 @@ void user_record_show(UserRecord *hr, bool show_full_group_info) {
                 printf("  Kill Proc.: %s\n", yes_no(hr->kill_processes));
 
         if (hr->service) {
-                printf("     Service: %s (can secure lock: %s)\n",
+                printf("     Service: %s (can secure-lock: %s)\n",
                        hr->service,
                        yes_no(hr->can_secure_lock));
         }

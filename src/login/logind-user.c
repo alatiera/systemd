@@ -986,28 +986,49 @@ int user_kill(User *u, int signo) {
 bool user_can_secure_lock(User *u) {
         assert(u);
 
-        if (u->secure_locked)
+
+        if (user_is_secure_locked(u)) {
+                log_debug("User is secure-locked");
                 /* Makes no sense for a user that's actively secure locked right now
                  * to report that it cannot be secure locked... */
                 return true;
+        }
+
+        log_debug("Backend for user %s secure-lock status: %d", u->user_record->user_name, u->user_record->can_secure_lock);
 
         /* Check if backend reports support for it */
-        if (!u->user_record->can_secure_lock)
+        if (!u->user_record->can_secure_lock) {
+                log_debug("Backend for user %s does not support secure-lock", u->user_record->user_name);
                 return false;
+        }
 
         /* Check if any session opted out */
-        LIST_FOREACH(sessions_by_user, s, u->sessions)
-                if (SESSION_CLASS_CAN_LOCK(s->class) && !s->can_secure_lock)
+        LIST_FOREACH(sessions_by_user, s, u->sessions) {
+                log_debug("Checking for opt-out sessions");
+                if (SESSION_CLASS_CAN_LOCK(s->class) && !s->can_secure_lock) {
+                        // FIXME-homed: figure out why the session opts-out
+                        log_debug("I run for user: %s: can-secure-lock: %d", u->user_record->user_name, u->user_record->can_secure_lock);
+                        if (u->user_record->can_secure_lock) {
+                                return true;
+                        }
+
+                        log_debug("Found an opt-out session: %s", s->id);
                         return false;
+                }
+        }
 
         /* Check if inhibited */
-        if (FLAGS_SET(user_inhibit_what(u, INHIBIT_BLOCK), INHIBIT_SECURE_LOCK))
+        if (FLAGS_SET(user_inhibit_what(u, INHIBIT_BLOCK), INHIBIT_SECURE_LOCK)) {
+                log_debug("Session already inhibited");
                 return false;
+        }
 
         return true;
 }
 
 bool user_is_secure_locked(User *u) {
+        log_debug("User %s can secure-lock: %d", u->user_record->user_name, u->user_record->can_secure_lock);
+        log_debug("User %s is secure-locked: %d", u->user_record->user_name, u->secure_locked);
         return u->secure_locked;
 }
 

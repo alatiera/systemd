@@ -1238,6 +1238,7 @@ static int manager_create_session_by_bus(
         // however, since 19cd2b6 its no longer possible to do so, as we don't pass the flags there.
         // Double check and ask PR reviewers if its okay to set this here or should it be done beforehand.
         session->can_secure_lock = FLAGS_SET(flags, SD_LOGIND_ENABLE_SECURE_LOCK);
+        log_debug("Session secure lock flag: %d", session->can_secure_lock);
 
         if (r == -EBUSY)
                 return sd_bus_error_set(error, BUS_ERROR_SESSION_BUSY, "Already running in a session or user slice");
@@ -1580,8 +1581,12 @@ static int method_secure_lock_users(sd_bus_message *message, void *userdata, sd_
 
                 data_ref = secure_lock_users_ref(data);
 
-                if (!user_can_secure_lock(user))
+                if (!user_can_secure_lock(user)) {
+                        log_debug("User %s can not secure lock", user->user_record->user_name);
                         continue;
+                }
+
+                log_debug("Attempting to secure lock %s", user->user_record->user_name);
 
                 k = user_secure_lock(user, secure_lock_users_cb, data_ref);
                 if (k < 0) {
@@ -2193,8 +2198,12 @@ static int execute_shutdown_or_sleep(
         HASHMAP_FOREACH(user, m->users) {
                 _cleanup_(sleep_secure_lock_unrefp) SleepSecureLock *ref = NULL;
 
-                if (!user_can_secure_lock(user))
+                if (!user_can_secure_lock(user)) {
+                        log_debug("User %s can not secure lock", user->user_record->user_name);
                         continue;
+                }
+
+                log_debug("Attempting to inhibit secure lock for %s", user->user_record->user_name);
 
                 if (FLAGS_SET(user_inhibit_what(user, INHIBIT_BLOCK), INHIBIT_SUSPEND_SECURE_LOCK))
                         continue;
