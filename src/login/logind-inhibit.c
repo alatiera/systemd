@@ -141,6 +141,7 @@ static int inhibitor_save(Inhibitor *i) {
 
         _cleanup_free_ char *user_base_path = NULL;
         const char *base_path;
+        mkdir_safe_label("/run/systemd/user-inhibit/", 0755, 0, 0, MKDIR_WARN_MODE);
         if (i->user) {
                 if (asprintf(&user_base_path, "/run/systemd/user-inhibit/"UID_FMT"/", i->user->user_record->uid) < 0) {
                         return log_oom();
@@ -403,12 +404,15 @@ int inhibitor_create_fifo(Inhibitor *i) {
         int r;
 
         assert(i);
+        log_debug("Entered create_fifo");
 
         /* Create FIFO */
         if (!i->fifo_path) {
                 _cleanup_free_ char *user_base_path = NULL;
                 const char *base_path;
+                log_debug("Creating FIFO");
 
+                mkdir_safe_label("/run/systemd/user-inhibit/", 0755, 0, 0, MKDIR_WARN_MODE);
                 if (i->user) {
                         if (asprintf(&user_base_path, "/run/systemd/user-inhibit/"UID_FMT"/", i->user->user_record->uid) < 0) {
                                 return -ENOMEM;
@@ -417,6 +421,7 @@ int inhibitor_create_fifo(Inhibitor *i) {
                 } else
                         base_path = "/run/systemd/inhibit/";
 
+                log_debug("Inhibit base path: %s", base_path);
                 r = mkdir_safe_label(base_path, 0755, 0, 0, MKDIR_WARN_MODE);
                 if (r < 0)
                         return r;
